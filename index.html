@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ピルリマインダー">
+<meta name="theme-color" content="#FFF5F5">
+<title>ヤーズフレックス リマインダー</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💊</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:'Zen Maru Gothic',sans-serif;background:linear-gradient(170deg,#FFF5F5 0%,#FFF0F6 40%,#F0F4FF 100%);min-height:100vh;min-height:100dvh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+button{font-family:inherit;cursor:pointer;-webkit-appearance:none}
+input{font-family:inherit;-webkit-appearance:none}
+
+#app{max-width:420px;margin:0 auto;padding:0 0 40px}
+
+.setup-wrap{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px}
+.setup-card{background:#fff;border-radius:28px;padding:36px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(200,150,160,0.15)}
+.setup-icon{font-size:48px;margin-bottom:10px}
+.setup-title{font-size:21px;font-weight:700;color:#4A3540;margin-bottom:4px}
+.setup-sub{font-size:12px;color:#9A8A90;margin-bottom:24px}
+.setup-label{font-size:12px;font-weight:500;color:#6A5A60;text-align:left;display:block;margin-bottom:6px}
+.setup-date{width:100%;padding:12px 14px;border:2px solid #F0E0E5;border-radius:14px;font-size:14px;color:#4A3540;outline:none;background:#FEFBFC;margin-bottom:16px;transition:border .2s}
+.setup-date:focus{border-color:#FF8BA7}
+.setup-btn{width:100%;padding:14px;background:linear-gradient(135deg,#FF8BA7,#FF6B8A);color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:700;margin-top:6px;transition:opacity .2s}
+.setup-btn:disabled{opacity:0.4}
+.setup-note{font-size:10px;color:#B0A0A5;margin-top:14px;line-height:1.6}
+
+.header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.header h1{font-size:15px;font-weight:700;color:#4A3540}
+.gear-btn{background:none;border:none;font-size:18px;padding:4px}
+
+.settings{padding:0 14px 10px}
+.settings-inner{background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 12px rgba(200,150,160,0.1)}
+.settings-info{font-size:12px;color:#6A5A60;margin-bottom:6px}
+.reset-btn{margin-top:8px;width:100%;padding:10px;background:#FFF0F3;color:#D44A6A;border:1.5px solid #FFD0DA;border-radius:12px;font-size:12px;font-weight:500}
+
+.today-card{margin:0 14px 10px;background:#fff;border-radius:20px;padding:18px 16px 14px;box-shadow:0 4px 20px rgba(200,150,160,0.12)}
+.today-date{text-align:center;font-size:12px;font-weight:500;color:#8A7A80;margin-bottom:6px}
+.status-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:4px}
+.badge{padding:4px 11px;border-radius:14px;font-size:11px;font-weight:500;display:inline-block}
+.badge-pink{background:#FFF0F3;color:#D44A6A}
+.badge-blue{background:#F0F4FF;color:#5577AA}
+.badge-amber{background:#FFF3E0;color:#BF6C00}
+.badge-purple{background:#EDE7F6;color:#6A4DAA}
+
+.progress-wrap{margin:10px 0 4px}
+.progress-bar{height:5px;background:#F0E8EB;border-radius:3px;overflow:hidden;position:relative}
+.progress-fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#FF8BA7,#FF6B8A);border-radius:3px;transition:width .4s}
+.progress-labels{display:flex;justify-content:space-between;margin-top:2px}
+.progress-labels span{font-size:9px;color:#C0B0B5}
+
+.take-btn{width:120px;height:120px;border-radius:50%;border:none;background:linear-gradient(145deg,#FF8BA7,#FF6B8A);display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 6px 24px rgba(255,107,138,0.35);animation:pulse 2s infinite}
+.take-btn span:first-child{font-size:30px}
+.take-btn span:last-child{font-size:16px;font-weight:700;color:#fff}
+.take-hint{font-size:11px;color:#B0A0A5;margin-top:10px}
+.check-circle{width:76px;height:76px;border-radius:50%;background:linear-gradient(145deg,#7DD3A0,#5CC08A);color:#fff;font-size:34px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;animation:checkPop .5s ease}
+.taken-text{font-size:16px;font-weight:700;color:#4A8A60}
+.taken-time{font-size:12px;color:#8ABB9A;margin-top:2px}
+.undo-btn{margin-top:10px;padding:5px 14px;background:transparent;border:1px solid #ddd;border-radius:8px;font-size:11px;color:#999}
+.rest-icon{font-size:40px;margin-bottom:6px}
+.rest-title{font-size:16px;font-weight:700;color:#7A7ABA}
+.rest-sub{font-size:12px;color:#A0A0C8;margin-top:2px;margin-bottom:10px}
+.rest-dots{display:flex;gap:6px;justify-content:center}
+.rest-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.rest-dot-on{background:#E0D7F0;color:#6A4DAA}
+.rest-dot-off{background:#F5F0FA;color:#C8BDE0}
+
+.bleed-alert{background:#FFF3E0;border:1px solid #FFE0B2;border-radius:12px;padding:9px 12px;margin:10px 0 0;text-align:center;font-size:11px;color:#BF6C00;font-weight:500}
+
+.bleed-toggle-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;padding-top:10px;border-top:1px solid #F5EEF0}
+.bleed-toggle-row span{font-size:11px;color:#8A7A80}
+.bleed-btn{padding:5px 14px;border-radius:18px;border:1.5px solid #E0D8DA;background:#FEFBFC;color:#A09098;font-size:11px;font-weight:500;transition:all .2s}
+.bleed-btn.active{border-color:#E8877C;background:#FFF0EE;color:#D44A6A}
+
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:0 14px 10px}
+.stat-card{background:#fff;border-radius:14px;padding:11px 8px;text-align:center;box-shadow:0 2px 10px rgba(200,150,160,0.08)}
+.stat-val{font-size:22px;font-weight:700;color:#4A3540;line-height:1.1}
+.stat-label{font-size:9px;color:#A09098;margin-top:2px}
+
+.cal-card{margin:0 14px;background:#fff;border-radius:20px;padding:14px 12px 10px;box-shadow:0 4px 20px rgba(200,150,160,0.1)}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-nav{background:none;border:none;font-size:18px;color:#8A7A80;padding:2px 10px}
+.cal-title{font-size:13px;font-weight:700;color:#4A3540}
+.cal-week{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:2px}
+.cal-week div{text-align:center;font-size:9px;font-weight:500;padding:2px 0;color:#999}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
+.cal-cell{display:flex;flex-direction:column;align-items:center;padding:3px 1px 2px;border-radius:8px;min-height:38px}
+.cal-cell.today{border:1.5px solid #FFD0DA;background:#FFF5F7}
+.cal-cell.future{opacity:0.3}
+.cal-num{font-size:10px;font-weight:500}
+.cal-marks{display:flex;gap:1px;align-items:center;min-height:13px}
+.cal-legend{display:flex;justify-content:center;gap:11px;margin-top:8px;padding-top:6px;border-top:1px solid #F5EEF0}
+.cal-legend span{font-size:9px;color:#A09098}
+
+.rules-card{margin:10px 14px 0;background:#FFF8F0;border:1px solid #FFE8CC;border-radius:14px;padding:11px 13px}
+.rules-title{font-size:10px;font-weight:500;color:#BF6C00;margin-bottom:3px}
+.rules-body{font-size:9px;color:#C89050;line-height:1.7}
+
+.confetti-box{position:fixed;top:0;left:0;right:0;height:100vh;pointer-events:none;z-index:100}
+
+.footer{text-align:center;font-size:10px;color:#C0B0B5;margin-top:16px;padding:0 20px}
+
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,139,167,.4)}50%{box-shadow:0 0 0 12px rgba(255,139,167,0)}}
+@keyframes popIn{0%{transform:scale(1)}50%{transform:scale(.85)}100%{transform:scale(1)}}
+@keyframes checkPop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes cfall{0%{transform:translateY(-10px) rotate(0);opacity:1}100%{transform:translateY(400px) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+"use strict";
+
+var DAYS_JP=["日","月","火","水","木","金","土"];
+var STORE_KEY="yazflex-reminder-v1";
+
+function toKey(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function parseD(k){var p=k.split("-").map(Number);return new Date(p[0],p[1]-1,p[2])}
+function addDays(d,n){return new Date(d.getTime()+n*864e5)}
+function getToday(){var n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate())}
+function getTodayKey(){return toKey(getToday())}
+function fmtTime(iso){var d=new Date(iso);return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")}
+
+var state={setupDone:false,startDate:"",records:{},bleeding:{},calMonth:getToday().getMonth(),calYear:getToday().getFullYear(),showSettings:false};
+
+function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify({setupDone:state.setupDone,startDate:state.startDate,records:state.records,bleeding:state.bleeding}))}catch(e){}}
+function load(){try{var r=JSON.parse(localStorage.getItem(STORE_KEY));if(r){state.setupDone=r.setupDone||false;state.startDate=r.startDate||"";state.records=r.records||{};state.bleeding=r.bleeding||{}}}catch(e){}}
+
+function computeCycleState(targetDate){
+  if(!state.startDate)return{contDays:0,inRest:false,restDayNum:0,consecBleed:0};
+  var start=parseD(state.startDate);
+  var target=targetDate||getToday();
+  if(target<start)return{contDays:0,inRest:false,restDayNum:0,consecBleed:0};
+  var contDays=0,inRest=false,restDayNum=0,consecBleed=0;
+  var d=new Date(start);
+  while(d<=target){
+    var k=toKey(d);
+    var isTarget=k===toKey(target);
+    if(inRest){
+      restDayNum++;
+      if(restDayNum>4){inRest=false;restDayNum=0;contDays=0;consecBleed=0}
+    }
+    if(!inRest){
+      contDays++;
+      if(contDays>=25){
+        if(state.bleeding[k])consecBleed++;else consecBleed=0;
+      }
+      if(!isTarget&&(consecBleed>=3||contDays>=120)){inRest=true;restDayNum=0;contDays=0;consecBleed=0}
+    }
+    if(!isTarget)d=addDays(d,1);else break;
+  }
+  return{contDays:contDays,inRest:inRest,restDayNum:restDayNum,consecBleed:consecBleed};
+}
+
+var cycleCache={};
+function getDayPhase(date){var k=toKey(date);if(cycleCache[k]!==undefined)return cycleCache[k];var cs=computeCycleState(date);cycleCache[k]=cs.inRest?"rest":"active";return cycleCache[k]}
+function invalidateCache(){cycleCache={}}
+
+function getStreak(){var s=0,d=getToday();if(state.records[toKey(d)])s++;d=addDays(d,-1);while(state.records[toKey(d)]){s++;d=addDays(d,-1)}return s}
+
+function getCalDays(y,m){var first=new Date(y,m,1);var last=new Date(y,m+1,0).getDate();var dow=first.getDay();var days=[];for(var i=0;i<dow;i++)days.push(null);for(var i=1;i<=last;i++)days.push(new Date(y,m,i));return days}
+
+var confTimer=null;
+function showConfetti(){
+  var box=document.getElementById("confetti-box");if(!box)return;
+  var cols=["#FF8BA7","#FFC6C7","#C3F0CA","#FFE0A3","#B8E0FF","#E8D5FF"];
+  var h="";
+  for(var i=0;i<22;i++){var l=Math.random()*100,dl=.1+Math.random()*.4,dur=1+Math.random(),sz=5+Math.random()*5,br=Math.random()>.5?"50%":"2px";
+    h+='<div style="position:absolute;top:-10px;left:'+l+'%;width:'+sz+'px;height:'+sz+'px;border-radius:'+br+';background:'+cols[i%6]+';animation:cfall '+dur+'s '+dl+'s ease-out forwards;opacity:0"></div>';
+  }
+  box.innerHTML=h;clearTimeout(confTimer);confTimer=setTimeout(function(){if(box)box.innerHTML=""},2500);
+}
+
+window.doSetup=function(){
+  var input=document.getElementById("setup-date");
+  if(!input||!input.value)return;
+  state.startDate=input.value;state.setupDone=true;save();invalidateCache();render();
+};
+window.takePill=function(){
+  var k=getTodayKey();if(state.records[k])return;
+  var btn=document.getElementById("takeBtn");if(btn)btn.style.animation="popIn .4s ease";
+  setTimeout(function(){state.records[k]={time:new Date().toISOString()};save();invalidateCache();showConfetti();render()},350);
+};
+window.undoTake=function(){delete state.records[getTodayKey()];save();invalidateCache();render()};
+window.toggleBleed=function(){var k=getTodayKey();if(state.bleeding[k])delete state.bleeding[k];else state.bleeding[k]=true;save();invalidateCache();render()};
+window.prevM=function(){if(state.calMonth===0){state.calMonth=11;state.calYear--}else state.calMonth--;invalidateCache();render()};
+window.nextM=function(){if(state.calMonth===11){state.calMonth=0;state.calYear++}else state.calMonth++;invalidateCache();render()};
+window.toggleSettings=function(){state.showSettings=!state.showSettings;render()};
+window.resetAll=function(){if(!confirm("すべてのデータをリセットしますか？"))return;localStorage.removeItem(STORE_KEY);state={setupDone:false,startDate:"",records:{},bleeding:{},calMonth:getToday().getMonth(),calYear:getToday().getFullYear(),showSettings:false};invalidateCache();render()};
+
+function render(){
+  var app=document.getElementById("app");
+  if(!state.setupDone){renderSetup(app);return}
+  renderMain(app);
+}
+
+function renderSetup(app){
+  app.innerHTML='<div class="setup-wrap"><div class="setup-card">'
+    +'<div class="setup-icon">💊</div>'
+    +'<div class="setup-title">ヤーズフレックス リマインダー</div>'
+    +'<p class="setup-sub">毎日の服用と出血を記録して<br>休薬タイミングを管理します</p>'
+    +'<label class="setup-label">服用開始日（生理初日）</label>'
+    +'<input type="date" class="setup-date" id="setup-date" onchange="document.getElementById(\'setup-go\').disabled=!this.value">'
+    +'<button class="setup-btn" id="setup-go" disabled onclick="doSetup()">はじめる</button>'
+    +'<p class="setup-note">※ データはこの端末にのみ保存されます<br>※ ホーム画面に追加するとアプリのように使えます</p>'
+    +'</div></div>';
+}
+
+function renderMain(app){
+  var t=getToday();
+  var tKey=getTodayKey();
+  var taken=!!state.records[tKey];
+  var bleeding=!!state.bleeding[tKey];
+  var cs=computeCycleState();
+  var streak=getStreak();
+  var totalTaken=Object.keys(state.records).length;
+
+  var statusHTML="";
+  if(cs.inRest){
+    statusHTML='<div class="status-row"><span class="badge badge-purple">休薬 '+cs.restDayNum+'日目 / 4日</span></div>';
+  }else{
+    var d120=120-cs.contDays;
+    var sb=cs.contDays<25
+      ?'<span class="badge badge-blue">最低24日まであと'+(24-cs.contDays)+'日</span>'
+      :'<span class="badge badge-amber">上限まであと'+d120+'日</span>';
+    statusHTML='<div class="status-row"><span class="badge badge-pink">連続 '+cs.contDays+'日目</span>'+sb+'</div>';
+  }
+
+  var progressHTML="";
+  if(!cs.inRest){
+    var pct=Math.min(100,Math.round(cs.contDays/120*100));
+    progressHTML='<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div><div class="progress-labels"><span>1日</span><span>24日</span><span>120日</span></div></div>';
+  }
+
+  var mainHTML="";
+  if(cs.inRest){
+    var dots="";for(var i=1;i<=4;i++)dots+='<div class="rest-dot '+(i<=cs.restDayNum?"rest-dot-on":"rest-dot-off")+'">'+i+'</div>';
+    mainHTML='<div style="text-align:center;padding:8px 0"><div class="rest-icon">🌙</div><p class="rest-title">休薬期間です</p><p class="rest-sub">あと'+(4-cs.restDayNum)+'日で服用再開</p><div class="rest-dots">'+dots+'</div></div>';
+  }else if(taken){
+    mainHTML='<div style="text-align:center"><div class="check-circle">✓</div><p class="taken-text">服用済み</p><p class="taken-time">'+fmtTime(state.records[tKey].time)+' に記録</p><button class="undo-btn" onclick="undoTake()">取り消す</button></div>';
+  }else{
+    mainHTML='<div style="text-align:center"><button class="take-btn" id="takeBtn" onclick="takePill()"><span>💊</span><span>飲んだ！</span></button><p class="take-hint">タップして今日の服用を記録</p></div>';
+  }
+
+  var bleedAlert="";
+  if(!cs.inRest&&cs.contDays>=25&&cs.consecBleed>0&&cs.consecBleed<3){
+    bleedAlert='<div class="bleed-alert">⚠ 出血'+cs.consecBleed+'日連続中 — 3日連続で休薬に入ります</div>';
+  }
+
+  var bleedToggle="";
+  if(!cs.inRest){
+    bleedToggle='<div class="bleed-toggle-row"><span>今日の出血:</span><button class="bleed-btn '+(bleeding?"active":"")+'" onclick="toggleBleed()">'+(bleeding?"🩸 あり":"なし")+'</button></div>';
+  }
+
+  var statVal3=cs.inRest?cs.restDayNum+"/4":cs.contDays;
+  var statLabel3=cs.inRest?"休薬中":"連続日数";
+  var statColor3=cs.inRest?"#7A7ABA":"#D44A6A";
+
+  var days=getCalDays(state.calYear,state.calMonth);
+  var startD=parseD(state.startDate);
+  var calCells="";
+  for(var di=0;di<days.length;di++){
+    var d=days[di];
+    if(!d){calCells+='<div class="cal-cell"></div>';continue}
+    var k=toKey(d);
+    var tk=!!state.records[k];
+    var bl=!!state.bleeding[k];
+    var isT=k===tKey;
+    var isFut=d>t;
+    var isBefore=d<startD;
+    var dow=d.getDay();
+    var dc=dow===0?"#E8877C":dow===6?"#7CA8E8":"#5A4A50";
+    var cls="cal-cell";if(isT)cls+=" today";if(isFut)cls+=" future";
+    var marks="";
+    if(!isBefore&&!isFut){
+      var phase=getDayPhase(d);
+      if(tk)marks+='<span style="font-size:11px">💊</span>';
+      if(bl)marks+='<span style="font-size:9px">🩸</span>';
+      if(!tk&&phase==="rest")marks=marks||'<span style="font-size:10px;color:#9A8ABB;font-weight:500">R</span>';
+      if(!tk&&phase==="active"&&!isT)marks=marks||'<span style="font-size:9px;color:#E8877C;font-weight:700">&times;</span>';
+    }
+    calCells+='<div class="'+cls+'"><span class="cal-num" style="color:'+dc+'">'+d.getDate()+'</span><div class="cal-marks">'+marks+'</div></div>';
+  }
+
+  var settingsHTML="";
+  if(state.showSettings){
+    settingsHTML='<div class="settings"><div class="settings-inner"><p class="settings-info">開始日: '+state.startDate+'</p><p class="settings-info">累計記録: '+totalTaken+'日</p><button class="reset-btn" onclick="resetAll()">すべてリセット</button></div></div>';
+  }
+
+  app.innerHTML='<div class="confetti-box" id="confetti-box"></div>'
+    +'<div class="header"><h1>💊 ヤーズフレックス</h1><button class="gear-btn" onclick="toggleSettings()">⚙️</button></div>'
+    +settingsHTML
+    +'<div class="today-card">'
+    +'<div class="today-date">'+t.getFullYear()+'年'+(t.getMonth()+1)+'月'+t.getDate()+'日（'+DAYS_JP[t.getDay()]+'）</div>'
+    +statusHTML+progressHTML
+    +'<div style="margin:12px 0 0">'+mainHTML+'</div>'
+    +bleedAlert+bleedToggle
+    +'</div>'
+    +'<div class="stats-row">'
+    +'<div class="stat-card"><div class="stat-val">'+streak+'</div><div class="stat-label">連続 🔥</div></div>'
+    +'<div class="stat-card"><div class="stat-val">'+totalTaken+'</div><div class="stat-label">累計服用</div></div>'
+    +'<div class="stat-card"><div class="stat-val" style="color:'+statColor3+'">'+statVal3+'</div><div class="stat-label">'+statLabel3+'</div></div>'
+    +'</div>'
+    +'<div class="cal-card">'
+    +'<div class="cal-header"><button class="cal-nav" onclick="prevM()">‹</button><span class="cal-title">'+state.calYear+'年 '+(state.calMonth+1)+'月</span><button class="cal-nav" onclick="nextM()">›</button></div>'
+    +'<div class="cal-week">'+DAYS_JP.map(function(d,i){return'<div style="color:'+(i===0?"#E8877C":i===6?"#7CA8E8":"#999")+'">'+d+'</div>'}).join("")+'</div>'
+    +'<div class="cal-grid">'+calCells+'</div>'
+    +'<div class="cal-legend"><span>💊 服用</span><span>🩸 出血</span><span><span style="color:#9A8ABB">R</span> 休薬</span><span><span style="color:#E8877C">✗</span> 未服用</span></div>'
+    +'</div>'
+    +'<div class="rules-card"><p class="rules-title">📋 ヤーズフレックスのルール</p><p class="rules-body">• 最初の24日間は出血があっても服用継続<br>• 25日目以降、3日連続出血で4日間休薬<br>• 最長120日連続 → 必ず4日間休薬<br>• 休薬は4日を超えないこと</p></div>'
+    +'<p class="footer">「ホーム画面に追加」でアプリのように使えます</p>';
+}
+
+load();
+state.calMonth=getToday().getMonth();
+state.calYear=getToday().getFullYear();
+render();
+
+function scheduleRefresh(){var n=new Date();var tmrw=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1);var ms=tmrw-n+1000;setTimeout(function(){invalidateCache();render();scheduleRefresh()},ms)}
+scheduleRefresh();
+
+})();
+</script>
+</body>
+</html>
