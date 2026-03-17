@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-title" content="ピルリマインダー">
+<meta name="theme-color" content="#FFF5F5">
+<title>ヤーズフレックス リマインダー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💊</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23FFF0F3'/><text x='50' y='62' text-anchor='middle' font-size='52'>💊</text></svg>">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+body{
+  font-family:'Zen Maru Gothic',sans-serif;
+  background:linear-gradient(170deg,#FFF5F5 0%,#FFF0F6 40%,#F0F4FF 100%);
+  min-height:100vh;min-height:-webkit-fill-available;
+  color:#4A3540;
+  padding-bottom:env(safe-area-inset-bottom,0)
+}
+button{font-family:inherit;cursor:pointer;-webkit-appearance:none;border:none;background:none}
+input{font-family:inherit;-webkit-appearance:none}
+
+/* ── Setup ── */
+.setup{min-height:100vh;min-height:-webkit-fill-available;display:flex;align-items:center;justify-content:center;padding:24px}
+.setup-card{background:#fff;border-radius:28px;padding:40px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(200,150,160,0.15)}
+.setup-icon{font-size:52px;margin-bottom:12px}
+.setup-title{font-size:22px;font-weight:700;margin-bottom:6px}
+.setup-sub{font-size:13px;color:#9A8A90;margin-bottom:24px;line-height:1.6}
+.setup-label{font-size:13px;font-weight:500;color:#6A5A60;text-align:left;display:block;margin-bottom:6px}
+.setup-date{width:100%;padding:13px 16px;border:2px solid #F0E0E5;border-radius:14px;font-size:15px;color:#4A3540;outline:none;background:#FEFBFC;-webkit-transition:border-color .2s;transition:border-color .2s}
+.setup-date:focus{border-color:#FF8BA7}
+.setup-btn{width:100%;padding:15px;background:linear-gradient(135deg,#FF8BA7,#FF6B8A);color:#fff;border:none;border-radius:16px;font-size:16px;font-weight:700;margin-top:20px;-webkit-transition:opacity .2s;transition:opacity .2s}
+.setup-btn:disabled{opacity:.4}
+.setup-btn:active:not(:disabled){-webkit-transform:scale(.97);transform:scale(.97)}
+.setup-note{font-size:11px;color:#B0A0A5;margin-top:16px;line-height:1.5}
+
+/* ── App ── */
+.app{max-width:420px;margin:0 auto;padding:0 0 20px;display:none}
+.app.active{display:block}
+
+/* ── Header ── */
+.header{display:flex;align-items:center;justify-content:space-between;padding:max(env(safe-area-inset-top,14px),14px) 16px 8px}
+.header h1{font-size:16px;font-weight:700}
+.hdr-btn{font-size:18px;padding:6px 8px;border-radius:8px}
+.hdr-btn:active{background:rgba(0,0,0,.05)}
+
+/* ── Cards ── */
+.card{background:#fff;border-radius:22px;padding:18px 16px 14px;box-shadow:0 4px 20px rgba(200,150,160,0.12);margin:0 12px 12px}
+.card-sm{background:#fff;border-radius:16px;padding:12px 10px;text-align:center;box-shadow:0 2px 12px rgba(200,150,160,0.08)}
+
+/* ── Today ── */
+.today-date{text-align:center;font-size:13px;font-weight:500;color:#8A7A80;margin-bottom:6px}
+.badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:4px}
+.badge{padding:4px 12px;border-radius:14px;font-size:12px;font-weight:500;display:inline-block}
+.badge-pink{background:#FFF0F3;color:#D44A6A}
+.badge-purple{background:#EDE7F6;color:#6A4DAA}
+.badge-amber{background:#FFF3E0;color:#BF6C00}
+.badge-blue{background:#F0F4FF;color:#5577AA}
+
+/* ── Progress ── */
+.progress-wrap{margin:10px 0 2px}
+.progress-bar{height:6px;background:#F0E8EB;border-radius:3px;overflow:hidden;position:relative}
+.progress-fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#FF8BA7,#FF6B8A);border-radius:3px;-webkit-transition:width .5s ease;transition:width .5s ease}
+.progress-labels{display:flex;justify-content:space-between;margin-top:3px;font-size:10px;color:#bbb}
+
+/* ── Take button ── */
+.take-wrap{text-align:center;padding:8px 0}
+.take-btn{
+  width:128px;height:128px;border-radius:50%;
+  background:linear-gradient(145deg,#FF8BA7,#FF6B8A);
+  display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  box-shadow:0 6px 24px rgba(255,107,138,0.35);
+  -webkit-animation:pulse 2s infinite;animation:pulse 2s infinite;
+  -webkit-transition:-webkit-transform .15s;transition:transform .15s
+}
+.take-btn:active{-webkit-transform:scale(.9);transform:scale(.9);-webkit-animation:none;animation:none}
+.take-icon{font-size:32px}
+.take-text{font-size:17px;font-weight:700;color:#fff}
+.take-hint{font-size:11px;color:#B0A0A5;margin-top:10px}
+
+/* ── Taken ── */
+.taken-wrap{text-align:center}
+.checkmark{
+  width:80px;height:80px;border-radius:50%;
+  background:linear-gradient(145deg,#7DD3A0,#5CC08A);
+  color:#fff;font-size:36px;font-weight:700;
+  display:inline-flex;align-items:center;justify-content:center;
+  margin-bottom:10px;
+  -webkit-animation:checkPop .5s ease;animation:checkPop .5s ease
+}
+.taken-title{font-size:17px;font-weight:700;color:#4A8A60;margin-bottom:4px}
+.taken-time{font-size:13px;color:#8ABB9A;margin-bottom:10px}
+.undo-btn{padding:5px 14px;background:transparent;border:1.5px solid #ddd;border-radius:10px;font-size:12px;color:#999}
+.undo-btn:active{background:#f5f5f5}
+
+/* ── Rest ── */
+.rest-wrap{text-align:center;padding:8px 0}
+.rest-icon{font-size:44px;margin-bottom:6px}
+.rest-title{font-size:17px;font-weight:700;color:#7A7ABA;margin-bottom:4px}
+.rest-sub{font-size:12px;color:#A0A0C8;margin-bottom:12px}
+.rest-dots{display:flex;gap:6px;justify-content:center}
+.rest-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.rest-dot.done{background:#E0D7F0;color:#6A4DAA}
+.rest-dot.pending{background:#F5F0FA;color:#C8BDE0}
+
+/* ── Bleeding ── */
+.bleed-row{display:flex;align-items:center;justify-content:center;gap:10px;padding-top:12px;border-top:1px solid #F5EEF0;margin-top:14px}
+.bleed-label{font-size:12px;color:#8A7A80}
+.bleed-btn{padding:6px 18px;border-radius:20px;border:1.5px solid #E0D8DA;background:#FEFBFC;color:#A09098;font-size:12px;font-weight:500;-webkit-transition:all .2s;transition:all .2s}
+.bleed-btn.on{border-color:#E8877C;background:#FFF0EE;color:#D44A6A}
+.bleed-btn:active{-webkit-transform:scale(.95);transform:scale(.95)}
+
+/* ── Alert ── */
+.alert{border-radius:12px;padding:10px 14px;margin-top:10px;text-align:center;font-size:12px;font-weight:500}
+.alert-amber{background:#FFF3E0;border:1px solid #FFE0B2;color:#BF6C00}
+.alert-red{background:#FFF0EE;border:1px solid #FFCDD2;color:#C62828}
+
+/* ── Stats ── */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:0 12px 12px}
+
+/* ── Calendar ── */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-nav button{font-size:20px;color:#8A7A80;padding:4px 12px;border-radius:8px}
+.cal-nav button:active{background:rgba(0,0,0,.05)}
+.cal-nav span{font-size:14px;font-weight:700}
+.cal-week{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:2px}
+.cal-week div{text-align:center;font-size:10px;font-weight:500;padding:3px 0;color:#999}
+.cal-week .sun{color:#E8877C}
+.cal-week .sat{color:#7CA8E8}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
+.cal-cell{
+  display:flex;flex-direction:column;align-items:center;
+  padding:3px 1px 2px;border-radius:8px;min-height:42px;
+  -webkit-transition:background .15s;transition:background .15s;
+  -webkit-user-select:none;user-select:none
+}
+.cal-cell.tappable{cursor:pointer}
+.cal-cell.tappable:active{background:#FFF0F3}
+.cal-cell.today{border:1.5px solid #FFD0DA;background:#FFF5F7}
+.cal-cell.future{opacity:.3;pointer-events:none}
+.cal-cell.before{opacity:.2;pointer-events:none}
+.cal-num{font-size:11px;font-weight:500;color:#5A4A50}
+.cal-num.sun{color:#E8877C}
+.cal-num.sat{color:#7CA8E8}
+.cal-marks{display:flex;gap:1px;align-items:center;min-height:14px;font-size:11px}
+.cal-legend{display:flex;justify-content:center;gap:10px;margin-top:8px;padding-top:6px;border-top:1px solid #F5EEF0;font-size:9px;color:#A09098}
+.gap-badge{display:inline-block;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:500;margin-top:4px}
+
+/* ── Rules ── */
+.rules{background:#FFF8F0;border:1px solid #FFE8CC;border-radius:14px;padding:12px 14px;margin:0 12px 12px}
+.rules-title{font-size:11px;font-weight:500;color:#BF6C00;margin-bottom:4px}
+.rules-text{font-size:10px;color:#C89050;line-height:1.7}
+
+/* ── Bottom sheet modal ── */
+.modal-bg{
+  display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.35);z-index:200;
+  -webkit-align-items:flex-end;align-items:flex-end;
+  -webkit-justify-content:center;justify-content:center
+}
+.modal-bg.active{display:-webkit-flex;display:flex}
+.modal-sheet{
+  background:#fff;border-radius:22px 22px 0 0;
+  width:100%;max-width:420px;
+  padding:20px 20px calc(20px + env(safe-area-inset-bottom,0));
+  -webkit-animation:slideUp .3s ease;animation:slideUp .3s ease
+}
+.modal-handle{width:40px;height:4px;background:#E0D8DA;border-radius:2px;margin:0 auto 14px}
+.modal-date{font-size:16px;font-weight:700;text-align:center;margin-bottom:16px}
+.toggle-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-radius:14px;
+  -webkit-transition:all .2s;transition:all .2s;
+  cursor:pointer;margin-bottom:10px
+}
+.toggle-row:active{-webkit-transform:scale(.98);transform:scale(.98)}
+.toggle-track{
+  width:46px;height:28px;border-radius:14px;position:relative;
+  -webkit-transition:background .2s;transition:background .2s;flex-shrink:0
+}
+.toggle-thumb{
+  width:24px;height:24px;border-radius:50%;background:#fff;
+  position:absolute;top:2px;
+  box-shadow:0 1px 3px rgba(0,0,0,.15);
+  -webkit-transition:all .2s;transition:all .2s
+}
+.close-sheet-btn{
+  width:100%;padding:13px;background:#F5F0F2;color:#6A5A60;
+  border:none;border-radius:14px;font-size:14px;font-weight:500;
+  margin-top:6px
+}
+.close-sheet-btn:active{background:#EDE8EA}
+
+/* ── Settings ── */
+.settings-info{font-size:13px;color:#6A5A60;margin-bottom:8px;line-height:1.5}
+.settings-info span{color:#999;font-size:12px}
+.reset-btn{
+  width:100%;padding:13px;background:#FFF0F3;color:#D44A6A;
+  border:1.5px solid #FFD0DA;border-radius:14px;font-size:14px;font-weight:500;margin-top:12px
+}
+.reset-btn:active{background:#FFE0E8}
+
+/* ── Confetti ── */
+.confetti-box{position:fixed;top:0;left:0;right:0;height:100vh;pointer-events:none;z-index:300}
+
+/* ── Footer ── */
+.footer{text-align:center;font-size:10px;color:#C0B0B5;padding:8px 20px 20px;line-height:1.5}
+
+/* ── Animations ── */
+@-webkit-keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,139,167,.4)}50%{box-shadow:0 0 0 13px rgba(255,139,167,0)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,139,167,.4)}50%{box-shadow:0 0 0 13px rgba(255,139,167,0)}}
+@-webkit-keyframes popIn{0%{-webkit-transform:scale(1)}50%{-webkit-transform:scale(.85)}100%{-webkit-transform:scale(1)}}
+@keyframes popIn{0%{transform:scale(1)}50%{transform:scale(.85)}100%{transform:scale(1)}}
+@-webkit-keyframes checkPop{0%{-webkit-transform:scale(0);opacity:0}60%{-webkit-transform:scale(1.2);opacity:1}100%{-webkit-transform:scale(1);opacity:1}}
+@keyframes checkPop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}
+@-webkit-keyframes cfall{0%{-webkit-transform:translateY(-10px) rotate(0);opacity:1}100%{-webkit-transform:translateY(400px) rotate(720deg);opacity:0}}
+@keyframes cfall{0%{transform:translateY(-10px) rotate(0);opacity:1}100%{transform:translateY(400px) rotate(720deg);opacity:0}}
+@-webkit-keyframes slideUp{from{-webkit-transform:translateY(100%)}to{-webkit-transform:translateY(0)}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- ── SETUP ── -->
+<div class="setup" id="setupScreen">
+  <div class="setup-card">
+    <div class="setup-icon">💊</div>
+    <div class="setup-title">ヤーズフレックス<br>リマインダー</div>
+    <p class="setup-sub">毎日の服用と出血を記録して<br>休薬タイミングを管理できます</p>
+    <label class="setup-label">服用開始日（シート1日目）</label>
+    <input type="date" class="setup-date" id="setupDate">
+    <button class="setup-btn" id="setupBtn" disabled onclick="completeSetup()">はじめる</button>
+    <p class="setup-note">※ このアプリはあくまで記録補助ツールです。<br>服用に関する判断は必ず医師にご相談ください。</p>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div class="app" id="appScreen">
+  <div class="confetti-box" id="confettiBox"></div>
+  <div class="header">
+    <h1>💊 ヤーズフレックス</h1>
+    <button class="hdr-btn" onclick="openSettings()">⚙️</button>
+  </div>
+  <div class="card" id="todayCard"></div>
+  <div class="stats-grid" id="statsGrid"></div>
+  <div class="card" id="calendarCard"></div>
+  <div class="rules">
+    <div class="rules-title">📋 ヤーズフレックスのルール</div>
+    <div class="rules-text">
+      • 最初の24日間は出血があっても服用継続<br>
+      • 25日目以降、3日連続出血 → 4日間休薬<br>
+      • 最長120日連続服用 → 必ず4日間休薬<br>
+      • 休薬は4日を超えないこと
+    </div>
+  </div>
+  <div class="footer">
+    「ホーム画面に追加」でアプリのように使えます<br>
+    ※ 医療アドバイスではありません。必ず医師の指示に従ってください。
+  </div>
+</div>
+
+<!-- ── Day edit modal ── -->
+<div class="modal-bg" id="dayModal" onclick="closeDayModalOut(event)">
+  <div class="modal-sheet" id="daySheet"></div>
+</div>
+
+<!-- ── Settings modal ── -->
+<div class="modal-bg" id="settingsModal" onclick="closeSettingsOut(event)">
+  <div class="modal-sheet" id="settingsSheet"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// Storage
+// ═══════════════════════════════════════
+var STORE_KEY = "yazflex-reminder";
+var state = { startDate:"", records:{}, bleeding:{}, setupDone:false };
+
+function load(){
+  try{ var s=localStorage.getItem(STORE_KEY); if(s) state=JSON.parse(s); }catch(e){}
+}
+function save(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+// ═══════════════════════════════════════
+// Date helpers
+// ═══════════════════════════════════════
+var DAYS_JP=["日","月","火","水","木","金","土"];
+
+function toKey(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function parseD(k){ var p=k.split("-"); return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2])); }
+function addD(d,n){ return new Date(d.getTime()+n*864e5); }
+function diffD(a,b){ return Math.floor((a-b)/864e5); }
+function fmtTime(iso){
+  var d=new Date(iso);
+  return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+}
+function todayDate(){ var n=new Date(); return new Date(n.getFullYear(),n.getMonth(),n.getDate()); }
+function todayKey(){ return toKey(todayDate()); }
+
+// ═══════════════════════════════════════
+// Cycle engine
+// ═══════════════════════════════════════
+function computeCycleState(targetDate){
+  if(!state.startDate) return { phase:"none" };
+  var start = parseD(state.startDate);
+  var target = targetDate || todayDate();
+  if(target < start) return { phase:"before" };
+
+  var contDays=0, inRest=false, restDayNum=0, consecBleed=0;
+  var totalDays = diffD(target, start);
+
+  for(var i=0; i<=totalDays; i++){
+    var d = addD(start, i);
+    var k = toKey(d);
+    var isTarget = (i === totalDays);
+    var hasBleeding = !!state.bleeding[k];
+
+    if(inRest){
+      restDayNum++;
+      if(restDayNum > 4){
+        inRest = false;
+        restDayNum = 0;
+        contDays = 0;
+        consecBleed = 0;
+      }
+    }
+
+    if(!inRest){
+      contDays++;
+      if(contDays >= 25 && hasBleeding){ consecBleed++; }
+      else if(contDays >= 25 && !hasBleeding){ consecBleed = 0; }
+
+      if(!isTarget && (consecBleed >= 3 || contDays >= 120)){
+        inRest = true;
+        restDayNum = 0;
+        contDays = 0;
+        consecBleed = 0;
+      }
+    }
+  }
+
+  if(inRest) return { phase:"rest", restDayNum:restDayNum, contDays:0, consecBleed:0 };
+  return { phase:"active", contDays:contDays, consecBleed:consecBleed, daysTo120:120-contDays, mustRestToday:contDays>=120 };
+}
+
+// ═══════════════════════════════════════
+// Streak
+// ═══════════════════════════════════════
+function getStreak(){
+  var s=0, d=todayDate();
+  if(state.records[toKey(d)]) s++;
+  d=addD(d,-1);
+  while(state.records[toKey(d)]){ s++; d=addD(d,-1); }
+  return s;
+}
+
+// ═══════════════════════════════════════
+// Gaps counter
+// ═══════════════════════════════════════
+function countGaps(){
+  if(!state.startDate) return 0;
+  var gaps=0, start=parseD(state.startDate), today=todayDate(), d=new Date(start);
+  while(d < today){
+    var k=toKey(d);
+    var cs=computeCycleState(d);
+    if(cs.phase==="active" && !state.records[k]) gaps++;
+    d=addD(d,1);
+  }
+  // today
+  var csT=computeCycleState(today);
+  if(csT.phase==="active" && !state.records[todayKey()]) gaps++;
+  return gaps;
+}
+
+// ═══════════════════════════════════════
+// Calendar state
+// ═══════════════════════════════════════
+var calMonth = new Date().getMonth();
+var calYear = new Date().getFullYear();
+var confettiTimer = null;
+var selectedDayKey = null;
+
+// ═══════════════════════════════════════
+// Setup
+// ═══════════════════════════════════════
+var setupDateEl = document.getElementById("setupDate");
+var setupBtnEl = document.getElementById("setupBtn");
+setupDateEl.addEventListener("input", function(){ setupBtnEl.disabled = !setupDateEl.value; });
+
+function completeSetup(){
+  state.startDate = setupDateEl.value;
+  state.setupDone = true;
+  state.records = {};
+  state.bleeding = {};
+  save();
+  showApp();
+}
+
+function showApp(){
+  document.getElementById("setupScreen").style.display = "none";
+  document.getElementById("appScreen").classList.add("active");
+  calMonth = new Date().getMonth();
+  calYear = new Date().getFullYear();
+  render();
+}
+
+// ═══════════════════════════════════════
+// Main render
+// ═══════════════════════════════════════
+function render(){
+  var today = todayDate();
+  var tKey = todayKey();
+  var taken = !!state.records[tKey];
+  var bleeding = !!state.bleeding[tKey];
+  var cs = computeCycleState(today);
+  var streak = getStreak();
+  var total = Object.keys(state.records).length;
+
+  // ── Today card ──
+  var h = "";
+  h += '<div class="today-date">'+today.getFullYear()+'年'+(today.getMonth()+1)+'月'+today.getDate()+'日（'+DAYS_JP[today.getDay()]+'）</div>';
+
+  // Badges
+  h += '<div class="badges">';
+  if(cs.phase==="rest"){
+    h += '<span class="badge badge-purple">休薬 '+cs.restDayNum+'日目 / 4日</span>';
+  } else if(cs.phase==="active"){
+    h += '<span class="badge badge-pink">連続 '+cs.contDays+'日目</span>';
+    if(cs.contDays<25) h += '<span class="badge badge-blue">最低24日まで あと'+(24-cs.contDays)+'日</span>';
+    else h += '<span class="badge badge-amber">上限まで あと'+cs.daysTo120+'日</span>';
+  }
+  h += '</div>';
+
+  // Progress
+  if(cs.phase==="active"){
+    var pct = Math.min(100, Math.round(cs.contDays/120*100));
+    h += '<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>';
+    h += '<div class="progress-labels"><span>1日</span><span>24日</span><span>120日</span></div></div>';
+  }
+
+  // Main action
+  if(cs.phase==="rest"){
+    var remaining = 4 - cs.restDayNum;
+    h += '<div class="rest-wrap"><div class="rest-icon">🌙</div>';
+    h += '<div class="rest-title">休薬期間です</div>';
+    h += '<div class="rest-sub">'+(remaining>0?'あと'+remaining+'日で服用再開':'明日から服用再開')+'</div>';
+    h += '<div class="rest-dots">';
+    for(var i=1;i<=4;i++) h+='<div class="rest-dot '+(i<=cs.restDayNum?'done':'pending')+'">'+i+'</div>';
+    h += '</div></div>';
+  } else if(cs.mustRestToday){
+    h += '<div class="rest-wrap"><div class="rest-icon">⚠️</div>';
+    h += '<div class="rest-title">120日に到達しました</div>';
+    h += '<div class="rest-sub">今日から4日間の休薬に入ってください</div></div>';
+  } else if(taken){
+    h += '<div class="taken-wrap"><div class="checkmark">✓</div>';
+    h += '<div class="taken-title">服用済み</div>';
+    h += '<div class="taken-time">'+fmtTime(state.records[tKey].time)+' に記録</div>';
+    h += '<button class="undo-btn" onclick="undoToday()">取り消す</button></div>';
+  } else {
+    h += '<div class="take-wrap">';
+    h += '<button class="take-btn" id="takeBtn" onclick="takeToday()">';
+    h += '<span class="take-icon">💊</span><span class="take-text">飲んだ！</span></button>';
+    h += '<div class="take-hint">タップして今日の服用を記録</div></div>';
+  }
+
+  // Bleeding alert
+  if(cs.phase==="active" && cs.contDays>=25 && cs.consecBleed>0 && cs.consecBleed<3){
+    h += '<div class="alert alert-amber">⚠️ 出血'+cs.consecBleed+'日連続中 — 3日連続で休薬に入ります</div>';
+  }
+  if(cs.phase==="active" && cs.consecBleed>=3){
+    h += '<div class="alert alert-red">🔴 3日連続出血：明日から4日間休薬してください</div>';
+  }
+
+  // Bleeding toggle
+  if(cs.phase==="active" && !cs.mustRestToday){
+    h += '<div class="bleed-row"><span class="bleed-label">今日の出血:</span>';
+    h += '<button class="bleed-btn'+(bleeding?' on':'')+'" onclick="toggleTodayBleed()">'+(bleeding?'🩸 あり':'なし')+'</button></div>';
+  }
+
+  document.getElementById("todayCard").innerHTML = h;
+
+  // ── Stats ──
+  document.getElementById("statsGrid").innerHTML =
+    '<div class="card-sm"><div style="font-size:24px;font-weight:700;line-height:1.1">'+streak+'</div><div style="font-size:10px;color:#A09098;margin-top:2px">連続 🔥</div></div>'+
+    '<div class="card-sm"><div style="font-size:24px;font-weight:700;line-height:1.1">'+total+'</div><div style="font-size:10px;color:#A09098;margin-top:2px">累計服用</div></div>'+
+    '<div class="card-sm"><div style="font-size:24px;font-weight:700;color:'+(cs.phase==="rest"?"#7A7ABA":"#D44A6A")+';line-height:1.1">'+(cs.phase==="rest"?cs.restDayNum+"/4":(cs.contDays||0))+'</div><div style="font-size:10px;color:#A09098;margin-top:2px">'+(cs.phase==="rest"?"休薬中":"連続日数")+'</div></div>';
+
+  // ── Calendar ──
+  renderCalendar();
+}
+
+// ═══════════════════════════════════════
+// Calendar render
+// ═══════════════════════════════════════
+function renderCalendar(){
+  var today = todayDate();
+  var tKey = todayKey();
+  var start = state.startDate ? parseD(state.startDate) : null;
+  var first = new Date(calYear, calMonth, 1);
+  var lastDay = new Date(calYear, calMonth+1, 0).getDate();
+  var startDow = first.getDay();
+  var gaps = countGaps();
+
+  var h = '';
+
+  // Gap indicator
+  h += '<div style="text-align:center;margin-bottom:8px">';
+  if(gaps>0) h += '<span class="gap-badge" style="background:#FFF3E0;color:#BF6C00">未入力 '+gaps+'日あり — 日付タップで入力</span>';
+  else if(state.startDate) h += '<span class="gap-badge" style="background:#E8F5E9;color:#388E3C">すべて入力済み ✓</span>';
+  h += '</div>';
+
+  h += '<div class="cal-nav">';
+  h += '<button onclick="calPrev()">‹</button>';
+  h += '<span>'+calYear+'年 '+(calMonth+1)+'月</span>';
+  h += '<button onclick="calNext()">›</button></div>';
+
+  h += '<div class="cal-week">';
+  for(var w=0;w<7;w++) h += '<div class="'+(w===0?'sun':w===6?'sat':'')+'">'+DAYS_JP[w]+'</div>';
+  h += '</div><div class="cal-grid">';
+
+  for(var e=0;e<startDow;e++) h+='<div class="cal-cell"></div>';
+
+  for(var day=1;day<=lastDay;day++){
+    var d = new Date(calYear, calMonth, day);
+    var k = toKey(d);
+    var isToday = k===tKey;
+    var isFuture = d > today;
+    var isBefore = start && d < start;
+    var hasTaken = !!state.records[k];
+    var hasBleed = !!state.bleeding[k];
+    var dow = d.getDay();
+    var numCls = "cal-num"+(dow===0?" sun":dow===6?" sat":"");
+    var cellCls = "cal-cell";
+
+    if(isToday) cellCls += " today";
+    if(isFuture) cellCls += " future";
+    if(isBefore) cellCls += " before";
+    if(!isFuture && !isBefore) cellCls += " tappable";
+
+    var marks = "";
+    if(hasTaken) marks += '<span>💊</span>';
+    if(hasBleed) marks += '<span style="font-size:9px">🩸</span>';
+
+    if(!hasTaken && !isFuture && !isBefore && start){
+      var ph = computeCycleState(d);
+      if(ph.phase==="rest"){
+        if(!marks) marks = '<span style="color:#9A8ABB;font-size:10px;font-weight:500">R</span>';
+      } else if(!isToday){
+        marks = marks || '<span style="color:#ddd;font-size:9px">○</span>';
+      }
+    }
+
+    var onclick = (!isFuture && !isBefore) ? ' onclick="openDayEdit(\''+k+'\')"' : '';
+
+    h += '<div class="'+cellCls+'"'+onclick+'>';
+    h += '<span class="'+numCls+'">'+day+'</span>';
+    h += '<div class="cal-marks">'+marks+'</div></div>';
+  }
+
+  h += '</div>';
+  h += '<div class="cal-legend">';
+  h += '<span>💊 服用</span><span>🩸 出血</span><span><span style="color:#9A8ABB">R</span> 休薬</span><span><span style="color:#ddd">○</span> 未入力</span>';
+  h += '</div>';
+
+  document.getElementById("calendarCard").innerHTML = h;
+}
+
+// ═══════════════════════════════════════
+// Today actions
+// ═══════════════════════════════════════
+function takeToday(){
+  var btn = document.getElementById("takeBtn");
+  if(btn) btn.style.animation = "popIn .4s ease";
+  setTimeout(function(){
+    state.records[todayKey()] = { time: new Date().toISOString() };
+    save();
+    showConfetti();
+    render();
+  }, 350);
+}
+
+function undoToday(){
+  delete state.records[todayKey()];
+  save();
+  render();
+}
+
+function toggleTodayBleed(){
+  var k = todayKey();
+  if(state.bleeding[k]) delete state.bleeding[k];
+  else state.bleeding[k] = true;
+  save();
+  render();
+}
+
+// ═══════════════════════════════════════
+// Day edit modal
+// ═══════════════════════════════════════
+function openDayEdit(k){
+  selectedDayKey = k;
+  var d = parseD(k);
+  var dow = DAYS_JP[d.getDay()];
+  var tk = !!state.records[k];
+  var bl = !!state.bleeding[k];
+  var isToday = k === todayKey();
+
+  var pillBg = tk ? "#F0FFF4" : "#FEFBFC";
+  var pillBorder = tk ? "#7DD3A0" : "#F0E0E5";
+  var pillColor = tk ? "#4A8A60" : "#6A5A60";
+  var pillSub = tk ? "#8ABB9A" : "#B0A0A5";
+  var pillTrack = tk ? "#7DD3A0" : "#D8D0D4";
+  var pillThumb = tk ? "right:2px" : "left:2px";
+
+  var blBg = bl ? "#FFF5F3" : "#FEFBFC";
+  var blBorder = bl ? "#E8877C" : "#F0E0E5";
+  var blColor = bl ? "#C62828" : "#6A5A60";
+  var blSub = bl ? "#E8877C" : "#B0A0A5";
+  var blTrack = bl ? "#E8877C" : "#D8D0D4";
+  var blThumb = bl ? "right:2px" : "left:2px";
+
+  var timeNote = "";
+  if(tk && state.records[k].time){
+    timeNote = '<div style="font-size:11px;color:#8ABB9A;margin-top:2px">'+fmtTime(state.records[k].time)+' に記録</div>';
+  }
+
+  var sh = '<div class="modal-handle"></div>';
+  sh += '<div class="modal-date">'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+dow+'）'+(isToday?' <span style="font-size:12px;color:#FF8BA7">今日</span>':'')+'</div>';
+
+  sh += '<div class="toggle-row" style="background:'+pillBg+';border:1.5px solid '+pillBorder+'" onclick="toggleDayPill()">';
+  sh += '<div><div style="font-size:14px;font-weight:500;color:'+pillColor+'">💊 服用</div>';
+  sh += '<div style="font-size:11px;color:'+pillSub+';margin-top:2px">'+(tk?'記録済み':'未記録')+'</div>'+timeNote+'</div>';
+  sh += '<div class="toggle-track" style="background:'+pillTrack+'"><div class="toggle-thumb" style="'+pillThumb+'"></div></div></div>';
+
+  sh += '<div class="toggle-row" style="background:'+blBg+';border:1.5px solid '+blBorder+'" onclick="toggleDayBleed()">';
+  sh += '<div><div style="font-size:14px;font-weight:500;color:'+blColor+'">🩸 出血</div>';
+  sh += '<div style="font-size:11px;color:'+blSub+';margin-top:2px">'+(bl?'記録済み':'未記録')+'</div></div>';
+  sh += '<div class="toggle-track" style="background:'+blTrack+'"><div class="toggle-thumb" style="'+blThumb+'"></div></div></div>';
+
+  sh += '<button class="close-sheet-btn" onclick="closeDayModal()">閉じる</button>';
+
+  document.getElementById("daySheet").innerHTML = sh;
+  document.getElementById("dayModal").classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+function toggleDayPill(){
+  if(!selectedDayKey) return;
+  if(state.records[selectedDayKey]){
+    delete state.records[selectedDayKey];
+  } else {
+    var d = parseD(selectedDayKey);
+    state.records[selectedDayKey] = { time: new Date(d.getFullYear(),d.getMonth(),d.getDate(),21,30).toISOString() };
+  }
+  save();
+  openDayEdit(selectedDayKey);
+  render();
+}
+
+function toggleDayBleed(){
+  if(!selectedDayKey) return;
+  if(state.bleeding[selectedDayKey]) delete state.bleeding[selectedDayKey];
+  else state.bleeding[selectedDayKey] = true;
+  save();
+  openDayEdit(selectedDayKey);
+  render();
+}
+
+function closeDayModal(){
+  document.getElementById("dayModal").classList.remove("active");
+  document.body.style.overflow = "";
+  selectedDayKey = null;
+}
+
+function closeDayModalOut(e){
+  if(e.target === document.getElementById("dayModal")) closeDayModal();
+}
+
+// ═══════════════════════════════════════
+// Settings modal
+// ═══════════════════════════════════════
+function openSettings(){
+  var total = Object.keys(state.records).length;
+  var bleedTotal = Object.keys(state.bleeding).length;
+
+  var sh = '<div class="modal-handle"></div>';
+  sh += '<div style="font-size:16px;font-weight:700;text-align:center;margin-bottom:16px">⚙️ 設定</div>';
+
+  // Start date edit
+  sh += '<div style="margin-bottom:16px">';
+  sh += '<div style="font-size:13px;font-weight:500;color:#6A5A60;margin-bottom:6px">服用開始日</div>';
+  sh += '<div style="display:flex;gap:8px;align-items:center">';
+  sh += '<input type="date" id="settingsDateInput" value="'+state.startDate+'" style="flex:1;padding:11px 14px;border:1.5px solid #F0E0E5;border-radius:12px;font-size:14px;font-family:inherit;color:#4A3540;background:#FEFBFC;outline:none;-webkit-appearance:none">';
+  sh += '<button onclick="saveStartDate()" style="padding:11px 18px;background:linear-gradient(135deg,#FF8BA7,#FF6B8A);color:#fff;border:none;border-radius:12px;font-size:13px;font-weight:600;font-family:inherit;white-space:nowrap;-webkit-transition:transform .15s;transition:transform .15s" id="saveDateBtn">変更</button>';
+  sh += '</div>';
+  sh += '<div style="font-size:10px;color:#B0A0A5;margin-top:5px;line-height:1.4">※ 開始日を変更しても服用・出血の記録は保持されます</div>';
+  sh += '</div>';
+
+  // Stats
+  sh += '<div style="border-top:1px solid #F0E8EB;padding-top:12px;margin-bottom:12px">';
+  sh += '<div class="settings-info">累計服用: <span>'+total+'日</span></div>';
+  sh += '<div class="settings-info">出血記録: <span>'+bleedTotal+'日</span></div>';
+  sh += '</div>';
+
+  // Export / Import
+  sh += '<div style="border-top:1px solid #F0E8EB;padding-top:12px;margin-bottom:12px">';
+  sh += '<div style="font-size:13px;font-weight:500;color:#6A5A60;margin-bottom:8px">データのバックアップ</div>';
+  sh += '<div style="display:flex;gap:8px">';
+  sh += '<button onclick="exportData()" style="flex:1;padding:11px;background:#F0F4FF;color:#5577AA;border:1.5px solid #D0DDEF;border-radius:12px;font-size:13px;font-weight:500;font-family:inherit">📤 書き出し</button>';
+  sh += '<button onclick="triggerImport()" style="flex:1;padding:11px;background:#F0FFF4;color:#4A8A60;border:1.5px solid #C0E0CC;border-radius:12px;font-size:13px;font-weight:500;font-family:inherit">📥 読み込み</button>';
+  sh += '</div>';
+  sh += '<div style="font-size:10px;color:#B0A0A5;margin-top:5px;line-height:1.4">※ 機種変更やデータ消失に備えてバックアップできます</div>';
+  sh += '<input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">';
+  sh += '</div>';
+
+  sh += '<button class="reset-btn" onclick="confirmReset()">すべてのデータをリセット</button>';
+  sh += '<button class="close-sheet-btn" onclick="closeSettings()">閉じる</button>';
+
+  document.getElementById("settingsSheet").innerHTML = sh;
+  document.getElementById("settingsModal").classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+function saveStartDate(){
+  var input = document.getElementById("settingsDateInput");
+  if(!input || !input.value) return;
+  var newDate = input.value;
+  if(newDate === state.startDate){ closeSettings(); return; }
+  state.startDate = newDate;
+  save();
+  render();
+  closeSettings();
+}
+
+// ═══════════════════════════════════════
+// Export / Import
+// ═══════════════════════════════════════
+function exportData(){
+  try{
+    var data = JSON.stringify(state, null, 2);
+    var blob = new Blob([data], {type:"application/json"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    var dateStr = toKey(new Date());
+    a.href = url;
+    a.download = "yazflex-backup-" + dateStr + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setTimeout(function(){ alert("バックアップを保存しました"); }, 300);
+  }catch(e){
+    alert("書き出しに失敗しました: " + e.message);
+  }
+}
+
+function triggerImport(){
+  var el = document.getElementById("importFile");
+  if(el) el.click();
+}
+
+function importData(event){
+  var file = event.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      var imported = JSON.parse(e.target.result);
+      if(!imported.startDate){
+        alert("無効なバックアップファイルです");
+        return;
+      }
+      if(!confirm("現在のデータを上書きしてバックアップから復元しますか？")) return;
+      state = {
+        startDate: imported.startDate || "",
+        records: imported.records || {},
+        bleeding: imported.bleeding || {},
+        setupDone: imported.setupDone !== false
+      };
+      save();
+      render();
+      closeSettings();
+      alert("データを復元しました");
+    }catch(err){
+      alert("ファイルの読み込みに失敗しました: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = "";
+}
+
+function closeSettings(){
+  document.getElementById("settingsModal").classList.remove("active");
+  document.body.style.overflow = "";
+}
+
+function closeSettingsOut(e){
+  if(e.target === document.getElementById("settingsModal")) closeSettings();
+}
+
+function confirmReset(){
+  if(confirm("すべてのデータを削除して最初からやり直しますか？")){
+    localStorage.removeItem(STORE_KEY);
+    state = { startDate:"", records:{}, bleeding:{}, setupDone:false };
+    document.getElementById("appScreen").classList.remove("active");
+    document.getElementById("setupScreen").style.display = "flex";
+    document.getElementById("setupDate").value = "";
+    document.getElementById("setupBtn").disabled = true;
+    closeSettings();
+  }
+}
+
+// ═══════════════════════════════════════
+// Confetti
+// ═══════════════════════════════════════
+function showConfetti(){
+  var box = document.getElementById("confettiBox");
+  var cols = ["#FF8BA7","#FFC6C7","#C3F0CA","#FFE0A3","#B8E0FF","#E8D5FF"];
+  var h = "";
+  for(var i=0;i<24;i++){
+    var l=Math.random()*100, dl=.1+Math.random()*.4, dur=1+Math.random(), sz=5+Math.random()*6, br=Math.random()>.5?"50%":"2px";
+    h += '<div style="position:absolute;top:-10px;left:'+l+'%;width:'+sz+'px;height:'+sz+'px;border-radius:'+br+';background:'+cols[i%6]+';animation:cfall '+dur+'s '+dl+'s ease-out forwards;opacity:0"></div>';
+  }
+  box.innerHTML = h;
+  clearTimeout(confettiTimer);
+  confettiTimer = setTimeout(function(){ box.innerHTML=""; }, 2500);
+}
+
+// ═══════════════════════════════════════
+// Calendar nav
+// ═══════════════════════════════════════
+function calPrev(){ if(calMonth===0){calMonth=11;calYear--;}else calMonth--; renderCalendar(); }
+function calNext(){ if(calMonth===11){calMonth=0;calYear++;}else calMonth++; renderCalendar(); }
+
+// ═══════════════════════════════════════
+// Init
+// ═══════════════════════════════════════
+load();
+if(state.setupDone && state.startDate){
+  showApp();
+}
+</script>
+</body>
+</html>
